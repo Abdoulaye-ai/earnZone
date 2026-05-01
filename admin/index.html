@@ -1000,7 +1000,7 @@
             showNotification('Accès refusé', 'Vous n\'êtes pas autorisé');
             setTimeout(async () => {
               await signOut(auth);
-              window.location.href = '../index.html';
+              window.location.href = '../login.html';
             }, 1500);
             return;
           }
