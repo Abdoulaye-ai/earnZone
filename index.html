@@ -569,18 +569,6 @@
         await setPersistence(auth, browserLocalPersistence);
         console.log('✅ Persistence locale configurée - session longue durée');
         
-        // Attendre l'état d'authentification
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            console.log('✅ Utilisateur connecté:', user.email);
-            loadUserData(user.uid);
-            setTimeout(() => showWithdrawNotification(), 2000);
-          } else {
-            console.log('❌ Utilisateur non connecté, redirection vers login...');
-            window.location.href = 'login.html';
-          }
-        });
-        
       } catch (error) {
         console.error('Erreur chargement Firebase:', error);
       } finally {

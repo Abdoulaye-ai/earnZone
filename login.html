@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    /* ===== STYLES IDENTIQUES À VOTRE VERSION ===== */
     :root {
       --primary: #B76EFF;
       --primary-dark: #8B3FE8;
@@ -96,11 +97,9 @@
     }
     .message.error { background: rgba(255, 77, 109, 0.15); border: 1px solid var(--danger); color: var(--danger); display: block; }
     .message.success { background: rgba(46, 232, 154, 0.15); border: 1px solid var(--success); color: var(--success); display: block; }
-    .message.info { background: rgba(183, 110, 255, 0.15); border: 1px solid var(--primary); color: var(--primary-light); display: block; }
     .register-link { text-align: center; margin-top: 24px; font-size: 13px; color: var(--text-dim); }
     .register-link a { color: var(--primary); text-decoration: none; }
     
-    /* Loader Firebase */
     .firebase-loader {
       position: fixed;
       bottom: 20px;
@@ -118,10 +117,7 @@
       border: 1px solid rgba(183,110,255,0.2);
       transition: opacity 0.3s;
     }
-    .firebase-loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .firebase-loader.hidden { opacity: 0; pointer-events: none; }
     .loader-spinner {
       width: 14px;
       height: 14px;
@@ -188,13 +184,8 @@
       appId: "1:1076831479440:web:8da3b161e9683dd98e1a15"
     };
     
-    // Adresse email ADMIN (à modifier avec votre email)
-    const ADMIN_EMAIL = "gagneavecia@gmail.com"; // ⚠️ REMPLACEZ PAR VOTRE EMAIL
-    
-    // ===== VARIABLES =====
     let auth, db, isFirebaseReady = false;
     
-    // ===== FONCTIONS UI =====
     function showMessage(text, type) {
       const messageDiv = document.getElementById('message');
       messageDiv.className = 'message ' + type;
@@ -212,39 +203,10 @@
       loginBtn.innerHTML = isLoading ? '<i class="fas fa-spinner fa-spin"></i> Connexion...' : '<i class="fas fa-sign-in-alt"></i> Se connecter';
     }
     
-    // ===== VÉRIFICATION ADMIN =====
-    async function checkAndRedirect(user, userData) {
-      // Nettoyer l'ancien cache
-      localStorage.removeItem('earnzone_user_cache');
-      
-      // Sauvegarder les infos utilisateur dans le cache
-      localStorage.setItem('earnzone_user_cache', JSON.stringify({
-        userData: userData,
-        timestamp: Date.now(),
-        email: user.email,
-        isAdmin: user.email === ADMIN_EMAIL
-      }));
-      
-      // Vérifier si c'est l'admin
-      if (user.email === ADMIN_EMAIL) {
-        showMessage('Bienvenue Admin ! Redirection vers le panel...', 'success');
-        setTimeout(() => {
-          window.location.href = '../index.html';
-        }, 1500);
-      } else {
-        showMessage('Connexion réussie ! Redirection...', 'success');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
-      }
-    }
-    
-    // ===== GESTION DE LA CONNEXION =====
     async function handleLogin(email, password) {
       setLoading(true);
       
       try {
-        // Connexion Firebase avec persistance déjà configurée
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
@@ -260,7 +222,7 @@
         
         const userData = userDoc.data();
         
-        // Vérification blocage (message vague)
+        // Vérifier si l'utilisateur est bloqué
         if (userData.status === 'blocked') {
           await signOut(auth);
           showMessage("Erreur serveur. Veuillez réessayer plus tard.", 'error');
@@ -268,82 +230,66 @@
           return;
         }
         
-        // Vérification expiration abonnement
-        if (userData.subscriptionEnd) {
-          const today = new Date().toISOString().split('T')[0];
-          if (userData.subscriptionEnd < today) {
-            await updateDoc(doc(db, "users", user.uid), { 
-              status: 'blocked', 
-              blockedReason: 'auto_expired',
-              blockedAt: new Date().toISOString()
-            });
-            await signOut(auth);
-            showMessage("Erreur serveur. Veuillez réessayer plus tard.", 'error');
-            setLoading(false);
-            return;
-          }
-        }
+        // Sauvegarder dans le cache
+        localStorage.setItem('earnzone_user_cache', JSON.stringify({
+          userData: userData,
+          timestamp: Date.now(),
+          email: user.email
+        }));
         
-        // Redirection selon le rôle (admin ou user normal)
-        await checkAndRedirect(user, userData);
+        showMessage("Connexion réussie ! Redirection...", 'success');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
         
       } catch (error) {
-        console.error('Erreur connexion:', error);
-        // Message vague pour toutes les erreurs
+        console.error(error);
         showMessage("Erreur serveur. Veuillez réessayer plus tard.", 'error');
         setLoading(false);
       }
     }
     
-    // ===== CHARGEMENT ASYNCHRONE DE FIREBASE =====
     async function loadFirebase() {
       const loader = document.getElementById('firebaseLoader');
       loader.classList.remove('hidden');
       
       try {
-        // Importer Firebase dynamiquement
         const { initializeApp } = await import("firebase/app");
         const { getAuth, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, onAuthStateChanged } = await import("firebase/auth");
-        const { getFirestore, doc, getDoc, updateDoc } = await import("firebase/firestore");
+        const { getFirestore, doc, getDoc } = await import("firebase/firestore");
         
-        // Exposer les fonctions globalement pour le formulaire
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.signOut = signOut;
         window.getDoc = getDoc;
-        window.updateDoc = updateDoc;
         window.doc = doc;
         
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
         
-        // ⚡ CRITIQUE: Configurer la persistance locale pour session longue durée
         await setPersistence(auth, browserLocalPersistence);
-        console.log('✅ Persistence locale configurée - session longue durée');
+        console.log('✅ Persistance configurée - session longue durée');
         
-        // Exposer globalement
         window.auth = auth;
         window.db = db;
+        isFirebaseReady = true;
         
-        // Vérifier si déjà connecté
+        // Vérifier si déjà connecté (mais pas admin)
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            // Déjà connecté, vérifier son rôle
             const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-              await checkAndRedirect(user, userDoc.data());
+            if (userDoc.exists() && userDoc.data().role !== 'admin') {
+              window.location.href = 'index.html';
             }
           }
         });
         
-        isFirebaseReady = true;
-        
-        // Activer le formulaire
         const loginForm = document.getElementById('loginForm');
         loginForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           if (!isFirebaseReady) {
-            showMessage("Chargement en cours, veuillez patienter...", 'info');
+            showMessage("Chargement en cours, veuillez patienter...", 'error');
             return;
           }
           
@@ -360,20 +306,13 @@
         
       } catch (error) {
         console.error('Erreur chargement Firebase:', error);
-        showMessage("Erreur de connexion au serveur. Rechargez la page.", 'error');
+        showMessage("Erreur de connexion. Rechargez la page.", 'error');
       } finally {
-        setTimeout(() => {
-          loader.classList.add('hidden');
-        }, 500);
+        setTimeout(() => loader.classList.add('hidden'), 500);
       }
     }
     
-    // ===== INITIALISATION =====
-    (function init() {
-      // Afficher le formulaire immédiatement (UI visible)
-      // Firebase se charge en arrière-plan
-      loadFirebase();
-    })();
+    loadFirebase();
   </script>
 </body>
 </html>
