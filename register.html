@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>EarnZone - Inscription | Rapide & Sécurisé</title>
+  <title>EarnZone - Inscription</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     /* ===== VARIABLES - STYLE UNIFORME ===== */
@@ -56,6 +56,38 @@
       font-size: 14px;
       line-height: 1.5;
     }
+
+    /* ===== LOADER FIREBASE ===== */
+    .firebase-loader {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      color: var(--primary-light);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(183,110,255,0.2);
+      transition: opacity 0.3s;
+    }
+    .firebase-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loader-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(183,110,255,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===== GRAIN TEXTURE ===== */
     body::after {
@@ -398,46 +430,6 @@
       border-top-color: white;
       animation: spin 0.8s linear infinite;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Loader initial (disparaît après chargement Firebase) */
-    .firebase-loader {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(10px);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 11px;
-      color: var(--text-dim);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--card-border);
-      pointer-events: none;
-    }
-
-    .firebase-loader.hidden {
-      display: none;
-    }
-
-    .dot-pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
   </style>
 </head>
 <body>
@@ -445,6 +437,12 @@
   <div class="gradient-bg"></div>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
+
+  <!-- Loader Firebase (chargement asynchrone) -->
+  <div class="firebase-loader" id="firebaseLoader">
+    <div class="loader-spinner"></div>
+    <span>Chargement...</span>
+  </div>
 
   <header class="header">
     <a href="index.html" class="logo">
@@ -478,11 +476,11 @@
         <div class="row-2cols">
           <div class="form-group">
             <label><i class="fas fa-user"></i> Nom</label>
-            <input type="text" id="nom" placeholder="Votre nom" required>
+            <input type="text" id="nom" placeholder="Votre nom" required autocomplete="family-name">
           </div>
           <div class="form-group">
             <label><i class="fas fa-user"></i> Prénom</label>
-            <input type="text" id="prenom" placeholder="Votre prénom" required>
+            <input type="text" id="prenom" placeholder="Votre prénom" required autocomplete="given-name">
           </div>
         </div>
 
@@ -497,6 +495,7 @@
             <option value="Burkina Faso" data-prefix="+226">🇧🇫 Burkina Faso (+226)</option>
             <option value="Sénégal" data-prefix="+221">🇸🇳 Sénégal (+221)</option>
             <option value="Côte d'Ivoire" data-prefix="+225">🇨🇮 Côte d'Ivoire (+225)</option>
+            <option value="Togo" data-prefix="+228">🇹🇬 Togo (+228)</option>
           </select>
         </div>
 
@@ -512,10 +511,11 @@
                 <option value="+226">+226</option>
                 <option value="+221">+221</option>
                 <option value="+225">+225</option>
+                <option value="+228">+228</option>
               </select>
             </div>
             <div class="phone-number">
-              <input type="tel" id="telephone" placeholder="Numéro (ex: 90123456)" required>
+              <input type="tel" id="telephone" placeholder="Numéro (ex: 90123456)" required autocomplete="tel">
             </div>
           </div>
         </div>
@@ -523,19 +523,19 @@
         <!-- Email -->
         <div class="form-group">
           <label><i class="fas fa-envelope"></i> Email</label>
-          <input type="email" id="email" placeholder="exemple@email.com" required>
+          <input type="email" id="email" placeholder="exemple@email.com" required autocomplete="email">
         </div>
 
         <!-- Mot de passe -->
         <div class="form-group">
           <label><i class="fas fa-lock"></i> Mot de passe</label>
-          <input type="password" id="password" placeholder="Minimum 6 caractères" required>
+          <input type="password" id="password" placeholder="Minimum 6 caractères" required autocomplete="new-password">
         </div>
 
         <!-- Confirmation mot de passe -->
         <div class="form-group">
           <label><i class="fas fa-lock"></i> Confirmer le mot de passe</label>
-          <input type="password" id="confirmPassword" placeholder="Répétez le mot de passe" required>
+          <input type="password" id="confirmPassword" placeholder="Répétez le mot de passe" required autocomplete="off">
         </div>
 
         <button type="submit" class="btn-register" id="registerBtn">
@@ -553,12 +553,6 @@
     </footer>
   </main>
 
-  <!-- Indicateur de chargement Firebase (visible seulement si lent) -->
-  <div id="firebaseLoader" class="firebase-loader hidden">
-    <div class="dot-pulse"></div>
-    <span>Chargement sécurisé...</span>
-  </div>
-
   <script type="importmap">
     {
       "imports": {
@@ -570,20 +564,7 @@
   </script>
 
   <script type="module">
-    // ============================================
-    // OPTIMISATION #1: UI IMMÉDIATEMENT VISIBLE
-    // ============================================
-    // Le HTML et CSS sont déjà chargés - l'utilisateur voit le formulaire
-    // Firebase sera chargé en arrière-plan
-    
-    // Afficher le loader après 500ms si Firebase est lent
-    let loaderTimeout = setTimeout(() => {
-      document.getElementById('firebaseLoader').classList.remove('hidden');
-    }, 500);
-    
-    // ============================================
-    // IMPORT FIREBASE (CHARGEMENT ASYNCHRONE)
-    // ============================================
+    // ===== CONFIGURATION =====
     const firebaseConfig = {
       apiKey: "AIzaSyAVlK5ivp2dCWyr22gkeGSLbRdwTIVMrEE",
       authDomain: "earnzone-9e82e.firebaseapp.com",
@@ -592,131 +573,31 @@
       messagingSenderId: "1076831479440",
       appId: "1:1076831479440:web:8da3b161e9683dd98e1a15"
     };
-    
-    // Variables Firebase (initialisées après chargement)
-    let auth = null;
-    let db = null;
-    let app = null;
-    let firebaseReady = false;
-    
-    // Queue d'actions à exécuter après chargement Firebase
-    let pendingActions = [];
-    
-    function whenFirebaseReady(callback) {
-      if (firebaseReady) {
-        callback();
-      } else {
-        pendingActions.push(callback);
-      }
-    }
-    
-    // Charger Firebase dynamiquement
-    async function loadFirebase() {
-      try {
-        const { initializeApp } = await import("firebase/app");
-        const { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, setPersistence, browserLocalPersistence } = await import("firebase/auth");
-        const { getFirestore, doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
-        
-        // Initialiser Firebase
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        
-        // 🔥 CRITIQUE: Configurer la persistance locale (session longue durée)
-        await setPersistence(auth, browserLocalPersistence);
-        console.log("✅ Persistence configurée - restera connecté plusieurs heures");
-        
-        // Rendre Firebase disponible globalement
-        window.firebase = { auth, db, app };
-        window.firebaseAPI = {
-          createUserWithEmailAndPassword,
-          fetchSignInMethodsForEmail,
-          doc, setDoc, collection, query, where, getDocs
-        };
-        
-        firebaseReady = true;
-        
-        // Exécuter les actions en attente
-        pendingActions.forEach(action => action());
-        pendingActions = [];
-        
-        // Cacher le loader
-        clearTimeout(loaderTimeout);
-        document.getElementById('firebaseLoader').classList.add('hidden');
-        
-        console.log("✅ Firebase chargé et prêt");
-        
-      } catch (error) {
-        console.error("❌ Erreur chargement Firebase:", error);
-        clearTimeout(loaderTimeout);
-        document.getElementById('firebaseLoader').classList.add('hidden');
-        showError("Impossible de charger la sécurisation. Actualisez la page.");
-      }
-    }
-    
-    // Démarrer le chargement asynchrone
-    loadFirebase();
-    
-    // ============================================
-    // INDICATIF TÉLÉPHONE DYNAMIQUE
-    // ============================================
-    const paysSelect = document.getElementById('pays');
-    const indicatifSelect = document.getElementById('indicatif');
-    
-    const indicatifMapping = {
-      'Bénin': '+229',
-      'Niger': '+227',
-      'Mali': '+223',
-      'Burkina Faso': '+226',
-      'Sénégal': '+221',
-      'Côte d\'Ivoire': '+225'
-    };
-    
-    function updateIndicatif() {
-      const selectedPays = paysSelect.value;
-      if (selectedPays && indicatifMapping[selectedPays]) {
-        indicatifSelect.value = indicatifMapping[selectedPays];
-      }
-    }
-    
-   function updatePays() {
-      const selectedIndicatif = indicatifSelect.value;
-      for (const [pays, indicatif] of Object.entries(indicatifMapping)) {
-        if (indicatif === selectedIndicatif) {
-          paysSelect.value = pays;
-          break;
-        }
-      }
-    }
-    
-    paysSelect.addEventListener('change', updateIndicatif);
-    indicatifSelect.addEventListener('change', updatePays);
-    
-    // ============================================
-    // VALIDATION ET INSCRIPTION
-    // ============================================
-    const registerForm = document.getElementById('registerForm');
-    const registerBtn = document.getElementById('registerBtn');
-    const errorMessageDiv = document.getElementById('errorMessage');
-    const errorTextSpan = document.getElementById('errorText');
-    const successMessageDiv = document.getElementById('successMessage');
-    
+
+    // ===== VARIABLES GLOBALES =====
+    let auth, db;
+    let isFirebaseReady = false;
+
+    // ===== FONCTIONS UI =====
     function showError(message) {
+      const errorMessageDiv = document.getElementById('errorMessage');
+      const errorTextSpan = document.getElementById('errorText');
       errorTextSpan.textContent = message;
       errorMessageDiv.classList.remove('hidden');
-      successMessageDiv.classList.add('hidden');
+      document.getElementById('successMessage').classList.add('hidden');
       
       setTimeout(() => {
         errorMessageDiv.classList.add('hidden');
       }, 5000);
     }
-    
+
     function showSuccess() {
-      successMessageDiv.classList.remove('hidden');
-      errorMessageDiv.classList.add('hidden');
+      document.getElementById('successMessage').classList.remove('hidden');
+      document.getElementById('errorMessage').classList.add('hidden');
     }
-    
+
     function setLoading(isLoading) {
+      const registerBtn = document.getElementById('registerBtn');
       if (isLoading) {
         registerBtn.disabled = true;
         registerBtn.innerHTML = '<span class="spinner"></span> Inscription en cours...';
@@ -725,36 +606,60 @@
         registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
       }
     }
-    
+
     function validateEmail(email) {
       const re = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
       return re.test(email);
     }
-    
+
     function validatePhone(phone) {
       const re = /^[0-9]{6,10}$/;
       return re.test(phone);
     }
-    
-    // Vérifier si l'email existe déjà
-    async function isEmailExists(email) {
-      if (!db || !window.firebaseAPI) return false;
-      const { collection, query, where, getDocs } = window.firebaseAPI;
-      try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", email.toLowerCase()));
-        const querySnapshot = await getDocs(q);
-        return !querySnapshot.empty;
-      } catch (error) {
-        console.error("Erreur vérification email:", error);
-        return false;
+
+    // ===== INDICATIF TÉLÉPHONE DYNAMIQUE =====
+    const paysSelect = document.getElementById('pays');
+    const indicatifSelect = document.getElementById('indicatif');
+
+    const indicatifMapping = {
+      'Bénin': '+229',
+      'Niger': '+227',
+      'Mali': '+223',
+      'Burkina Faso': '+226',
+      'Sénégal': '+221',
+      'Côte d\'Ivoire': '+225',
+      'Togo': '+228'
+    };
+
+    function updateIndicatif() {
+      const selectedPays = paysSelect.value;
+      if (selectedPays && indicatifMapping[selectedPays]) {
+        indicatifSelect.value = indicatifMapping[selectedPays];
       }
     }
-    
-    // Gestionnaire d'inscription (attend Firebase si nécessaire)
-    registerForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
+
+    function updatePays() {
+      const selectedIndicatif = indicatifSelect.value;
+      for (const [pays, indicatif] of Object.entries(indicatifMapping)) {
+        if (indicatif === selectedIndicatif) {
+          paysSelect.value = pays;
+          break;
+        }
+      }
+    }
+
+    paysSelect.addEventListener('change', updateIndicatif);
+    indicatifSelect.addEventListener('change', updatePays);
+
+    // ===== FONCTION D'INSCRIPTION =====
+    async function handleRegister(event) {
+      event.preventDefault();
       
+      if (!isFirebaseReady) {
+        showError('Chargement en cours, veuillez patienter...');
+        return;
+      }
+
       // Récupération des valeurs
       const nom = document.getElementById('nom').value.trim();
       const prenom = document.getElementById('prenom').value.trim();
@@ -764,71 +669,69 @@
       const email = document.getElementById('email').value.trim().toLowerCase();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-      
-      // Validations de base (immédiates, sans Firebase)
+
+      // Validations
       if (!nom || !prenom || !pays || !telephone || !email || !password || !confirmPassword) {
         showError('Tous les champs sont obligatoires.');
         return;
       }
-      
+
       if (nom.length < 2 || prenom.length < 2) {
         showError('Le nom et le prénom doivent contenir au moins 2 caractères.');
         return;
       }
-      
+
       if (!validatePhone(telephone)) {
         showError('Numéro de téléphone invalide. Utilisez 6 à 10 chiffres sans espaces.');
         return;
       }
-      
+
       if (!validateEmail(email)) {
         showError('Adresse email invalide.');
         return;
       }
-      
+
       if (password.length < 6) {
         showError('Le mot de passe doit comporter au moins 6 caractères.');
         return;
       }
-      
+
       if (password !== confirmPassword) {
         showError('Les mots de passe ne correspondent pas.');
         return;
       }
-      
-      // Vérifier que Firebase est chargé
-      if (!firebaseReady) {
-        showError('Chargement de la sécurisation en cours... Réessayez dans 2 secondes.');
-        return;
-      }
-      
+
       setLoading(true);
-      
+
       try {
-        const { createUserWithEmailAndPassword, fetchSignInMethodsForEmail, doc, setDoc } = window.firebaseAPI;
+        // Vérifier si l'email existe déjà dans Firestore
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", email));
+        const querySnapshot = await getDocs(q);
         
-        // 1. Vérifier si l'email existe déjà dans Firestore
-        const emailAlreadyExists = await isEmailExists(email);
-        if (emailAlreadyExists) {
+        if (!querySnapshot.empty) {
           showError('Un compte avec cet email existe déjà. Connectez-vous.');
           setLoading(false);
           return;
         }
-        
-        // 2. Vérifier avec Firebase Auth
+
+        // Vérifier avec Firebase Auth
         const signInMethods = await fetchSignInMethodsForEmail(auth, email);
         if (signInMethods.length > 0) {
           showError('Un compte avec cet email existe déjà. Connectez-vous.');
           setLoading(false);
           return;
         }
-        
-        // 3. Créer l'utilisateur
+
+        // Créer l'utilisateur
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const firebaseUser = userCredential.user;
-        
-        // 4. Données utilisateur
-        const fullPhoneNumber = indicatif + ' ' + telephone;
+
+        // Configurer la persistance pour la session
+        await setPersistence(auth, browserLocalPersistence);
+
+        // Données utilisateur
+        const fullPhoneNumber = indicatif + telephone;
         const fullName = prenom + ' ' + nom;
         
         const userData = {
@@ -847,27 +750,27 @@
           daysActive: 0,
           createdAt: firebaseUser.metadata.creationTime,
           lastLogin: new Date().toISOString(),
-          isAdmin: email === 'gagneavecia@gmail.com' // 🔐 Marquer si admin
+          hasDeposited: false
         };
-        
-        // 5. Enregistrer dans Firestore
+
+        // Enregistrer dans Firestore
         await setDoc(doc(db, "users", firebaseUser.uid), userData);
-        
-        // 6. Stocker dans localStorage pour accès instantané
-        localStorage.setItem('earnzone_user', JSON.stringify({
-          uid: firebaseUser.uid,
+
+        // Sauvegarder dans le cache localStorage
+        localStorage.setItem('earnzone_user_cache', JSON.stringify({
+          userData: userData,
+          timestamp: Date.now(),
           email: email,
-          fullName: fullName,
-          isAdmin: email === 'gagneavecia@gmail.com'
+          isAdmin: false
         }));
-        
+
         showSuccess();
-        
-        // Redirection vers l'accueil
+
+        // Redirection après inscription
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 1500);
-        
+
       } catch (error) {
         console.error("Erreur d'inscription:", error);
         
@@ -893,13 +796,80 @@
         showError(errorMessage);
         setLoading(false);
       }
-    });
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
+    }
+
+    // ===== CHARGEMENT ASYNCHRONE DE FIREBASE =====
+    async function loadFirebase() {
+      const loader = document.getElementById('firebaseLoader');
+      loader.classList.remove('hidden');
+      
+      try {
+        const { initializeApp } = await import("firebase/app");
+        const { 
+          getAuth, 
+          createUserWithEmailAndPassword,
+          fetchSignInMethodsForEmail,
+          setPersistence,
+          browserLocalPersistence
+        } = await import("firebase/auth");
+        const { 
+          getFirestore, 
+          doc, 
+          setDoc, 
+          collection,
+          query,
+          where,
+          getDocs
+        } = await import("firebase/firestore");
+        
+        // Exposer les fonctions globalement
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.fetchSignInMethodsForEmail = fetchSignInMethodsForEmail;
+        window.setPersistence = setPersistence;
+        window.browserLocalPersistence = browserLocalPersistence;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.collection = collection;
+        window.query = query;
+        window.where = where;
+        window.getDocs = getDocs;
+        
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        
+        // Configurer la persistance
+        await setPersistence(auth, browserLocalPersistence);
+        console.log('✅ Persistence locale configurée');
+        
+        window.auth = auth;
+        window.db = db;
+        
+        isFirebaseReady = true;
+        
+        // Activer le formulaire
+        const registerForm = document.getElementById('registerForm');
+        registerForm.addEventListener('submit', handleRegister);
+        
+      } catch (error) {
+        console.error('Erreur chargement Firebase:', error);
+        showError('Erreur de connexion. Rechargez la page.');
+      } finally {
+        setTimeout(() => {
+          loader.classList.add('hidden');
+        }, 500);
+      }
+    }
+
+    // ===== INITIALISATION =====
+    (function init() {
+      // Pays Niger par défaut
       paysSelect.value = 'Niger';
       updateIndicatif();
-    });
+      
+      // Charger Firebase en arrière-plan
+      loadFirebase();
+    })();
   </script>
 </body>
 </html>

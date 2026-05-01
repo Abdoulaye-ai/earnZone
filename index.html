@@ -2,16 +2,15 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>EarnZone - Investissez et Gagnez | Accueil</title>
+  <title>EarnZone - Investissez et Gagnez</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="EarnZone - Plateforme d'investissement et formations pour faire fructifier votre argent">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    /* ===== VARIABLES ===== */
+    /* ===== VARIABLES (conservé identique) ===== */
     :root {
       --primary: #B76EFF;
       --primary-dark: #8B3FE8;
@@ -45,6 +44,38 @@
       line-height: 1.5;
       overflow-x: hidden;
     }
+
+    /* ===== LOADER ===== */
+    .firebase-loader {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      color: var(--primary-light);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(183,110,255,0.2);
+      transition: opacity 0.3s;
+    }
+    .firebase-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loader-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(183,110,255,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===== BACKGROUND ===== */
     .gradient-bg {
@@ -191,15 +222,6 @@
       gap: 12px;
     }
 
-    .admin-badge {
-      background: linear-gradient(135deg, var(--danger), #ff1a4f);
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-size: 10px;
-      font-weight: 700;
-      margin-left: 8px;
-    }
-
     .container { max-width: 500px; margin: 0 auto; padding: 24px 16px; }
 
     .hero-section { margin-bottom: 44px; animation: slideInUp 0.7s ease; }
@@ -298,66 +320,6 @@
     .withdraw-amount { font-weight: 800; color: var(--success); }
     @media (max-width: 480px) { .withdraw-notification { padding: 6px 14px; } }
 
-    /* Loader initial */
-    .initial-loader {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: var(--bg-dark);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.5s ease;
-    }
-    .initial-loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .loader-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--card-border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .firebase-loader {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(10px);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 11px;
-      color: var(--text-dim);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--card-border);
-      pointer-events: none;
-    }
-    .firebase-loader.hidden {
-      display: none;
-    }
-    .dot-pulse {
-      width: 8px;
-      height: 8px;
-      background: var(--primary);
-      border-radius: 50%;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-
     .footer { border-top: 1px solid rgba(183, 110, 255, 0.06); padding: 40px 0 24px; }
     .footer-about { text-align: center; }
     .footer-logo { font-size: 18px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Playfair Display', serif; }
@@ -370,14 +332,15 @@
 </head>
 <body>
 
-  <!-- Loader initial (disparaît après 300ms ou chargement Firebase) -->
-  <div id="initialLoader" class="initial-loader">
-    <div class="loader-spinner"></div>
-  </div>
-
   <div class="gradient-bg"></div>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
+
+  <!-- Loader Firebase (visible pendant le chargement asynchrone) -->
+  <div class="firebase-loader" id="firebaseLoader">
+    <div class="loader-spinner"></div>
+    <span>Connexion en cours...</span>
+  </div>
 
   <div class="withdraw-notification" id="withdrawNotification">
     <div class="withdraw-icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -392,11 +355,12 @@
       <div class="logo-text">EARN<span>ZONE</span></div>
     </a>
     <div class="header-actions">
-      <a href="profil.html" class="user-profile" id="userProfile">
+      <!-- Le profil sera mis à jour après chargement Firebase ou depuis cache -->
+      <div class="user-profile" id="userProfile">
         <div class="user-avatar" id="userAvatar">U</div>
         <span class="user-name" id="userName">Chargement...</span>
-      </a>
-      <div class="menu-btn" id="menuBtn">
+      </div>
+      <div class="menu-btn" onclick="window.location.href='menu.html'">
         <i class="fas fa-bars"></i>
       </div>
     </div>
@@ -423,10 +387,10 @@
     </div>
 
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon"><i class="fas fa-wallet"></i></div><div class="stat-value" id="statBalance">--- FCFA</div><div class="stat-label">Solde</div></div>
-      <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value" id="statInvestments">---</div><div class="stat-label">Investissements</div></div>
-      <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-value" id="statGains">--- FCFA</div><div class="stat-label">Gains totaux</div></div>
-      <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div><div class="stat-value" id="statDays">---</div><div class="stat-label">Jours actifs</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-wallet"></i></div><div class="stat-value" id="statBalance">-- FCFA</div><div class="stat-label">Solde</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value" id="statInvestments">--</div><div class="stat-label">Investissements</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-trophy"></i></div><div class="stat-value" id="statGains">-- FCFA</div><div class="stat-label">Gains totaux</div></div>
+      <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div><div class="stat-value" id="statDays">--</div><div class="stat-label">Jours actifs</div></div>
     </div>
 
     <div class="section-header"><div class="section-subtitle">Plateforme d'investissement</div><h2 class="section-title">Faites <span>grandir</span> votre capital</h2><p class="section-description">Des solutions puissantes pour générer des revenus passifs.</p></div>
@@ -462,12 +426,6 @@
     </footer>
   </main>
 
-  <!-- Indicateur de chargement Firebase -->
-  <div id="firebaseLoader" class="firebase-loader hidden">
-    <div class="dot-pulse"></div>
-    <span>Synchronisation...</span>
-  </div>
-
   <script type="importmap">
     {
       "imports": {
@@ -479,23 +437,7 @@
   </script>
 
   <script type="module">
-    // ============================================
-    // OPTIMISATION #1: AFFICHAGE IMMÉDIAT
-    // ============================================
-    // Masquer le loader initial après 300ms (UI visible)
-    setTimeout(() => {
-      const loader = document.getElementById('initialLoader');
-      if (loader) loader.classList.add('hidden');
-    }, 300);
-    
-    // Afficher le loader Firebase après 500ms si lent
-    let loaderTimeout = setTimeout(() => {
-      document.getElementById('firebaseLoader').classList.remove('hidden');
-    }, 500);
-    
-    // ============================================
-    // CONFIGURATION FIREBASE
-    // ============================================
+    // ===== CONFIGURATION FIREBASE =====
     const firebaseConfig = {
       apiKey: "AIzaSyAVlK5ivp2dCWyr22gkeGSLbRdwTIVMrEE",
       authDomain: "earnzone-9e82e.firebaseapp.com",
@@ -504,42 +446,41 @@
       messagingSenderId: "1076831479440",
       appId: "1:1076831479440:web:8da3b161e9683dd98e1a15"
     };
-    
-    // Variables globales
-    let auth = null;
-    let db = null;
-    let unsubscribeUser = null;
-    let intervalTimer = null;
+
+    // ===== VARIABLES GLOBALES =====
+    let auth, db, unsubscribeUser = null;
+    let userData = { balance: 0, investments: [], gainsTotal: 0, daysActive: 0, nom: "Utilisateur", prenom: "Utilisateur" };
+    let notificationTimer = null;
     let withdrawIndex = 0;
-    let isAdmin = false;
-    let currentUserEmail = null;
-    
-    // Données utilisateur (cache localStorage)
-    let userData = { 
-      balance: 0, 
-      investments: [], 
-      gainsTotal: 0, 
-      daysActive: 0, 
-      nom: "Utilisateur", 
-      prenom: "Utilisateur",
-      isAdmin: false
-    };
-    
+    let isFirebaseReady = false;
+
     const retraitsSimules = [
-      { nom: "Samuel", montant: 65000, moyen: "Wave" },
-      { nom: "Awa", montant: 12500, moyen: "Orange Money" },
-      { nom: "Koffi", montant: 80700, moyen: "MTN Mobile" },
-      { nom: "Fatou", montant: 23000, moyen: "Wave" },
-      { nom: "Jean", montant: 62000, moyen: "Orange Money" },
-      { nom: "Mariam", montant: 15400, moyen: "Wave" },
-      { nom: "Sékou", montant: 92500, moyen: "MTN Mobile" },
-      { nom: "Moussa", montant: 33100, moyen: "Orange Money" }
+      { nom: "Samuel", montant: 65000, moyen: "Wave" }, { nom: "Awa", montant: 12500, moyen: "Orange Money" },
+      { nom: "Koffi", montant: 80700, moyen: "MTN Mobile" }, { nom: "Fatou", montant: 23000, moyen: "Wave" },
+      { nom: "Jean", montant: 62000, moyen: "Orange Money" }, { nom: "Mariam", montant: 15400, moyen: "Wave" },
+      { nom: "Sékou", montant: 92500, moyen: "MTN Mobile" }, { nom: "Moussa", montant: 33100, moyen: "Orange Money" }
     ];
-    
-    // ============================================
-    // FONCTIONS UI (utilisent le cache si Firebase pas encore prêt)
-    // ============================================
-    function updateUI() {
+
+    // ===== FONCTIONS UI (affichage immédiat depuis cache) =====
+    function updateUIFromCache() {
+      const cached = localStorage.getItem('earnzone_user_cache');
+      if (cached) {
+        try {
+          const cache = JSON.parse(cached);
+          const cacheAge = Date.now() - (cache.timestamp || 0);
+          // Cache valide pendant 1 heure
+          if (cacheAge < 3600000 && cache.userData) {
+            userData = cache.userData;
+            applyUIToDOM();
+            console.log('✅ UI affichée depuis le cache');
+            return true;
+          }
+        } catch(e) {}
+      }
+      return false;
+    }
+
+    function applyUIToDOM() {
       document.getElementById('statBalance').innerText = (userData.balance || 0).toLocaleString('fr-FR') + ' FCFA';
       const activeInvestments = (userData.investments || []).filter(inv => inv.status === 'active').length;
       document.getElementById('statInvestments').innerText = activeInvestments;
@@ -548,13 +489,11 @@
       if (userData.registrationDate) {
         const days = Math.floor((new Date() - new Date(userData.registrationDate)) / (86400000));
         document.getElementById('statDays').innerText = days;
-      } else if (userData.daysActive) {
-        document.getElementById('statDays').innerText = userData.daysActive;
       }
       
       let nom = userData.nom || userData.prenom || 'Utilisateur';
       if (nom.includes(' ')) nom = nom.split(' ')[0];
-      document.getElementById('userName').innerHTML = nom + (isAdmin ? '<span class="admin-badge">ADMIN</span>' : '');
+      document.getElementById('userName').innerText = nom;
       
       const avatarLettre = (userData.prenom || userData.nom || 'U').charAt(0).toUpperCase();
       document.getElementById('userAvatar').innerText = avatarLettre;
@@ -566,22 +505,16 @@
         else depotBanner.classList.remove('hidden');
       }
     }
-    
-    // Charger depuis le cache localStorage (affichage instantané)
-    function loadFromCache() {
-      const cached = localStorage.getItem('earnzone_user');
-      if (cached) {
-        try {
-          const userCache = JSON.parse(cached);
-          userData = { ...userData, ...userCache };
-          isAdmin = userCache.isAdmin === true;
-          currentUserEmail = userCache.email;
-          updateUI();
-          console.log("✅ Affichage depuis cache (instantané)");
-        } catch(e) {}
-      }
+
+    function updateUICache() {
+      applyUIToDOM();
+      // Sauvegarder en cache
+      localStorage.setItem('earnzone_user_cache', JSON.stringify({
+        userData: userData,
+        timestamp: Date.now()
+      }));
     }
-    
+
     function showWithdrawNotification() {
       const retrait = retraitsSimules[withdrawIndex % retraitsSimules.length];
       withdrawIndex++;
@@ -592,124 +525,114 @@
       notif.classList.add('show');
       setTimeout(() => notif.classList.remove('show'), 5000);
     }
-    
+
     function startNotificationTimer() {
-      if (intervalTimer) clearInterval(intervalTimer);
+      if (notificationTimer) clearInterval(notificationTimer);
       const hasDeposited = (userData.balance > 0) || (userData.hasDeposited === true);
       const intervalMs = hasDeposited ? 90000 : 10000;
-      intervalTimer = setInterval(showWithdrawNotification, intervalMs);
+      notificationTimer = setInterval(showWithdrawNotification, intervalMs);
     }
-    
-    // ============================================
-    // CHARGEMENT FIREBASE ASYNCHRONE
-    // ============================================
-    async function loadFirebaseAndInit() {
+
+    function loadUserData(uid) {
+      if (unsubscribeUser) unsubscribeUser();
+      
+      const userDocRef = doc(db, "users", uid);
+      unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          userData = docSnap.data();
+          updateUICache();
+          startNotificationTimer();
+        } else {
+          console.error("Utilisateur non trouvé");
+        }
+      }, (error) => {
+        console.error("Erreur Firestore:", error);
+      });
+    }
+
+    // ===== CHARGEMENT ASYNCHRONE DE FIREBASE =====
+    async function loadFirebaseAndAuth() {
+      const loader = document.getElementById('firebaseLoader');
+      loader.classList.remove('hidden');
+      
       try {
+        // Importer Firebase dynamiquement
         const { initializeApp } = await import("firebase/app");
         const { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } = await import("firebase/auth");
         const { getFirestore, doc, onSnapshot } = await import("firebase/firestore");
         
-        // Initialiser
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
         
-        // 🔥 PERSISTANCE SESSION LONGUE DURÉE
+        // CRITIQUE: Configurer la persistance locale pour session longue durée
         await setPersistence(auth, browserLocalPersistence);
-        console.log("✅ Persistence configurée");
+        console.log('✅ Persistence locale configurée - session longue durée');
         
-        // Cacher le loader Firebase
-        clearTimeout(loaderTimeout);
-        document.getElementById('firebaseLoader').classList.add('hidden');
-        
-        // Surveiller l'état d'authentification
+        // Attendre l'état d'authentification
         onAuthStateChanged(auth, (user) => {
           if (user) {
-            currentUserEmail = user.email;
-            isAdmin = (user.email === 'gagneavecia@gmail.com');
-            
-            // Mettre à jour le cache
-            const cached = localStorage.getItem('earnzone_user');
-            let cachedData = cached ? JSON.parse(cached) : {};
-            localStorage.setItem('earnzone_user', JSON.stringify({
-              ...cachedData,
-              uid: user.uid,
-              email: user.email,
-              isAdmin: isAdmin
-            }));
-            
-            // Écouter les données Firestore en temps réel
-            if (unsubscribeUser) unsubscribeUser();
-            const userDocRef = doc(db, "users", user.uid);
-            unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
-              if (docSnap.exists()) {
-                userData = docSnap.data();
-                userData.isAdmin = isAdmin;
-                updateUI();
-                startNotificationTimer();
-                
-                // Mettre à jour le cache
-                localStorage.setItem('earnzone_user', JSON.stringify({
-                  uid: user.uid,
-                  email: user.email,
-                  fullName: userData.fullName,
-                  nom: userData.nom,
-                  prenom: userData.prenom,
-                  balance: userData.balance,
-                  isAdmin: isAdmin
-                }));
-              }
-            }, (error) => {
-              console.error("Erreur Firestore:", error);
-            });
-            
-            // Première notification
+            console.log('✅ Utilisateur connecté:', user.email);
+            loadUserData(user.uid);
             setTimeout(() => showWithdrawNotification(), 2000);
           } else {
-            // Non connecté - redirection
+            console.log('❌ Utilisateur non connecté, redirection vers login...');
             window.location.href = 'login.html';
           }
         });
         
       } catch (error) {
-        console.error("❌ Erreur chargement Firebase:", error);
-        clearTimeout(loaderTimeout);
-        document.getElementById('firebaseLoader').classList.add('hidden');
-        // Rediriger quand même vers login si Firebase échoue
+        console.error('Erreur chargement Firebase:', error);
+      } finally {
         setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1000);
+          loader.classList.add('hidden');
+        }, 500);
       }
     }
-    
-    // ============================================
-    // INITIALISATION
-    // ============================================
-    // 1. Afficher depuis le cache (instantané)
-    loadFromCache();
-    
-    // 2. Charger Firebase en arrière-plan
-    loadFirebaseAndInit();
-    
-    // 3. Menu button (redirection)
-    document.getElementById('menuBtn').addEventListener('click', () => {
-      window.location.href = 'menu.html';
-    });
-    
-    // 4. Animations au scroll
-    document.addEventListener('DOMContentLoaded', function() {
-      const observer = new IntersectionObserver(entries => entries.forEach(e => { 
-        if(e.isIntersecting){ 
-          e.target.style.opacity = '1'; 
-          e.target.style.transform = 'translateY(0)'; 
-        } 
-      }), { threshold: 0.08 });
-      document.querySelectorAll('.stat-card, .feature-card, .formation-card, .testimonial-card').forEach(el => { 
-        el.style.opacity = '0'; 
-        el.style.transform = 'translateY(20px)'; 
-        observer.observe(el); 
+
+    // ===== ANIMATIONS D'ENTRÉE =====
+    function setupAnimations() {
+      document.querySelectorAll('.stat-card, .feature-card, .formation-card, .testimonial-card').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
       });
-    });
+      
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.style.opacity = '1';
+            e.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.08 });
+      
+      document.querySelectorAll('.stat-card, .feature-card, .formation-card, .testimonial-card').forEach(el => {
+        observer.observe(el);
+      });
+    }
+
+    // ===== INITIALISATION =====
+    (function init() {
+      // 1. AFFICHAGE IMMÉDIAT depuis le cache
+      updateUIFromCache();
+      
+      // 2. Configurer animations
+      setupAnimations();
+      
+      // 3. Charger Firebase en arrière-plan (ne bloque pas l'UI)
+      loadFirebaseAndAuth();
+      
+      // 4. Rafraîchir le cache périodiquement
+      setInterval(() => {
+        if (userData && userData.balance !== undefined) {
+          localStorage.setItem('earnzone_user_cache', JSON.stringify({
+            userData: userData,
+            timestamp: Date.now()
+          }));
+        }
+      }, 30000);
+    })();
   </script>
 </body>
 </html>
